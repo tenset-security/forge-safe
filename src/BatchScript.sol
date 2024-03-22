@@ -10,6 +10,10 @@ import {Script, console2, StdChains, stdJson, stdMath, StdStorage, stdStorageSaf
 import {Surl} from "../lib/surl/src/Surl.sol";
 import {DelegatePrank} from "./lib/DelegatePrank.sol";
 
+interface Safe {
+    function nonce() external view returns (uint256);
+}
+
 // ⭐️ SCRIPT
 abstract contract BatchScript is Script, DelegatePrank {
     using stdJson for string;
@@ -445,6 +449,9 @@ abstract contract BatchScript is Script, DelegatePrank {
     }
 
     function _getNonce(address safe_) internal returns (uint256) {
+        if (isFork()) {
+            return Safe(safe_).nonce();
+        }
         string memory endpoint = string.concat(
             SAFE_API_BASE_URL,
             vm.toString(safe_),
